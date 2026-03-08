@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/database/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  WORKER
+  LEADER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum AttendanceStatus {
+  WORKING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model Employee {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  dailyRate        Decimal  @map("daily_rate") @db.Decimal(10, 2)
+  allowancePerDay  Decimal  @map("allowance_per_day") @db.Decimal(10, 2)
+  phoneNumber      String   @map("phone_number")
+  address          String
+  identificationId Int      @unique @map("identification_id")
+  role             Role
+  status           Status
+  avatarUrl        String?
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  attendances Attendance[]
+  teamId      String
+  team        Team         @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Restrict)
+
+  teams Team[] @relation("TeamLeaders")
+}
+
+model Team {
+  id   String @id @default(uuid())
+  name String @unique
+
+  employees Employee[] @relation("TeamMembers")
+
+  leaderId String?   @unique
+  leader   Employee? @relation("TeamLeaders", fields: [leaderId], references: [id])
+}
+
+model Site {
+  id          String       @id @default(uuid())
+  name        String
+  lat         Float
+  long        Float
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
+  attendances Attendance[]
+
+  @@index([lat, long])
+}
+
+model Attendance {
+  id              String           @id @default(uuid())
+  workDate        DateTime
+  totalHours      Float            @default(0)
+  normalHours     Float            @default(0)
+  otHours         Float            @default(0)
+  workDescription String?
+  issues          String?
+  status          AttendanceStatus @default(WORKING)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+
+  employeeId      String
+  employee        Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  siteId          String
+  site            Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  payrollPeriodId String?
+  payrollPeriod   PayrollPeriod? @relation(fields: [payrollPeriodId], references: [id])
+
+  checkIns     CheckIn[]
+  reportImages ReportImage[]
+
+  @@unique([employeeId, workDate])
+  @@index([employeeId])
+  @@index([siteId])
+  @@index([workDate])
+  @@index([payrollPeriodId])
+}
+
+model CheckIn {
+  id           String    @id @default(uuid())
+  checkInTime  DateTime
+  checkOutTime DateTime?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  @@index([attendanceId])
+}
+
+model PayrollPeriod {
+  id    String @id @default(uuid())
+  month Int
+  year  Int
+
+  attendances Attendance[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([month, year])
+  @@index([month, year])
+}
+
+model ReportImage {
+  id       String @id @default(uuid())
+  imageUrl String
+
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+}
