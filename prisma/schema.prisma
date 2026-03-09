@@ -51,8 +51,8 @@ model Employee {
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   attendances Attendance[]
-  teamId      String
-  team        Team         @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Restrict)
+  teamId      String?
+  team        Team?        @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Restrict)
 
   teams Team[] @relation("TeamLeaders")
 }

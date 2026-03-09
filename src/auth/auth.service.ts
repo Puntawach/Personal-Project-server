@@ -4,6 +4,7 @@ import { Employee } from 'src/database/generated/prisma/client';
 import { EmployeeService } from 'src/employee/employee.service';
 import { BcryptService } from 'src/shared/security/services/bcrypt.service';
 import { AuthTokenService } from 'src/shared/security/services/auth-token.service';
+import { EmployeeWithoutPassword } from 'src/employee/types/employee.type';
 
 @Injectable()
 export class AuthService {
@@ -37,9 +38,14 @@ export class AuthService {
     const accessToken = await this.authTokenService.sign({
       sub: employee.id,
       email: employee.email,
+      role: employee.role,
     });
 
     const { password, ...rest } = employee;
     return { accessToken, employee: rest };
+  }
+
+  async getCurrentUser(id: string): Promise<EmployeeWithoutPassword> {
+    return await this.employeeService.findById(id);
   }
 }

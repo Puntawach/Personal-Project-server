@@ -1,17 +1,30 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateEmployeeDto } from './dtos/create-employee.dto';
 import { Employee } from 'src/database/generated/prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { BcryptService } from 'src/shared/security/services/bcrypt.service';
 import { PrismaClientKnownRequestError } from 'src/database/generated/prisma/internal/prismaNamespace';
 import { PrismaErrorMeta } from 'src/auth/types/error.type';
+import { EmployeeWithoutPassword } from './types/employee.type';
+import { UpdateEmployeeDto } from './dtos/update-employee.dto';
+import { CloudinaryService } from 'src/shared/upload/cloudinary.service';
+import { CreateAdminDto } from './dtos/create-admin.dto';
 
 @Injectable()
 export class EmployeeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bcrypt: BcryptService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  // async createAdmin(createAdminDto: CreateAdminDto): Promise<void> {
+  //   await this.create({ ...createAdminDto, role: 'ADMIN' });
+  // }
 
   async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
     const hashedPassword = await this.bcrypt.hash(createEmployeeDto.password);
@@ -59,5 +72,45 @@ export class EmployeeService {
 
   async findByEmail(email: string): Promise<Employee | null> {
     return this.prisma.employee.findUnique({ where: { email } });
+  }
+
+  async findById(id: string): Promise<EmployeeWithoutPassword> {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
+    if (!employee)
+      throw new NotFoundException({
+        message: 'Not found Employee from provided ID',
+        code: 'EMPLOYEE_NOT_FOUND',
+      });
+
+    return employee;
+  }
+
+  //
+  async update(
+    id: string,
+    updateEmployee: UpdateEmployeeDto,
+  ): Promise<EmployeeWithoutPassword> {
+    return this.prisma.employee.update({
+      where: { id },
+      data: updateEmployee,
+      omit: { password: true },
+    });
+  }
+
+  async uploadAvatar(
+    file: Express.Multer.File,
+    employeeId: string,
+  ): Promise<string> {
+    // 1. upload to cloud
+    const result = await this.cloudinaryService.upload(file);
+    const employee = await this.update(employeeId, {
+      avatarUrl: result.secure_url,
+    });
+    console.log(employee);
+    // 2. update avatarUrl into the dat abase
+    return result.secure_url;
   }
 }
