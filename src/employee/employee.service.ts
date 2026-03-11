@@ -13,6 +13,7 @@ import { EmployeeWithoutPassword } from './types/employee.type';
 import { UpdateEmployeeDto } from './dtos/update-employee.dto';
 import { CloudinaryService } from 'src/shared/upload/cloudinary.service';
 import { CreateAdminDto } from './dtos/create-admin.dto';
+import { UpdateMeDto } from './dtos/update-me.dto';
 
 @Injectable()
 export class EmployeeService {
@@ -22,9 +23,9 @@ export class EmployeeService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  // async createAdmin(createAdminDto: CreateAdminDto): Promise<void> {
-  //   await this.create({ ...createAdminDto, role: 'ADMIN' });
-  // }
+  async createAdmin(createAdminDto: CreateAdminDto): Promise<void> {
+    await this.create({ ...createAdminDto, role: 'ADMIN' });
+  }
 
   async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
     const hashedPassword = await this.bcrypt.hash(createEmployeeDto.password);
@@ -71,12 +72,14 @@ export class EmployeeService {
   }
 
   async findByEmail(email: string): Promise<Employee | null> {
-    return this.prisma.employee.findUnique({ where: { email } });
+    return this.prisma.employee.findUnique({
+      where: { email, status: 'ACTIVE' },
+    });
   }
 
   async findById(id: string): Promise<EmployeeWithoutPassword> {
-    const employee = await this.prisma.employee.findUnique({
-      where: { id },
+    const employee = await this.prisma.employee.findFirst({
+      where: { id, status: 'ACTIVE' },
       omit: { password: true },
     });
     if (!employee)
@@ -88,6 +91,27 @@ export class EmployeeService {
     return employee;
   }
 
+  async getAllEmployee(): Promise<Employee[]> {
+    const data = this.prisma.employee.findMany({ where: { status: 'ACTIVE' } });
+    return data;
+  }
+
+  async updateMe(
+    employeeId: string,
+    UpdateMeDto: UpdateMeDto,
+  ): Promise<EmployeeWithoutPassword> {
+    return this.prisma.employee.update({
+      where: { id: employeeId },
+      data: UpdateMeDto,
+    });
+  }
+
+  async updateEmployee(id: string, data: UpdateEmployeeDto) {
+    return this.prisma.employee.update({
+      where: { id },
+      data,
+    });
+  }
   //
   async update(
     id: string,
@@ -112,5 +136,19 @@ export class EmployeeService {
     console.log(employee);
     // 2. update avatarUrl into the dat abase
     return result.secure_url;
+  }
+
+  async remove(id: string): Promise<void> {
+    await this.prisma.employee.update({
+      where: { id },
+      data: { status: 'DELETE' },
+    });
+  }
+
+  async restore(id: string): Promise<void> {
+    await this.prisma.employee.update({
+      where: { id },
+      data: { status: 'ACTIVE' },
+    });
   }
 }

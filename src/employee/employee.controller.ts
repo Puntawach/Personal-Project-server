@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -15,6 +17,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
 import { CreateAdminDto } from './dtos/create-admin.dto';
+import { ResponseMessage } from 'src/common/decorators/message-response.decorator';
+import { UpdateEmployeeDto } from './dtos/update-employee.dto';
+import { UpdateMeDto } from './dtos/update-me.dto';
 
 @Controller('employees')
 export class EmployeeController {
@@ -31,15 +36,19 @@ export class EmployeeController {
     return this.employeeService.findById(id);
   }
 
+  @Public()
   @Get()
-  getAllEmployee() {}
+  getAllEmployee() {
+    return this.employeeService.getAllEmployee();
+  }
 
-  // @Post('admin')
-  // async createAdmin(@Body() createAdminDto: CreateAdminDto): Promise<string> {
-  //   await this.employeeService.createAdmin(createAdminDto);
-  //   return 'Admin created successfully';
-  // }
-  // @Public()
+  @Public()
+  @ResponseMessage('Admin created successfully')
+  @Post('admin')
+  async createAdmin(@Body() createAdminDto: CreateAdminDto): Promise<void> {
+    return await this.employeeService.createAdmin(createAdminDto);
+  }
+  @Public()
   @Post()
   createEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeeService.create(createEmployeeDto);
@@ -53,10 +62,29 @@ export class EmployeeController {
   ): Promise<string> {
     return this.employeeService.uploadAvatar(file, employee.sub);
   }
+  @Patch('me')
+  updateMe(
+    @Body() updateMeDto: UpdateMeDto,
+    @CurrentEmployee() employee: JwtPayload,
+  ) {
+    return this.employeeService.updateMe(employee.sub, updateMeDto);
+  }
 
-  @Patch()
-  updateMe() {}
+  @Patch(':id')
+  updateEmployee(
+    @Param('id') id: string,
+    @Body() updateEmployeeDto: UpdateEmployeeDto,
+  ) {
+    return this.employeeService.updateEmployee(id, updateEmployeeDto);
+  }
 
-  @Patch()
-  updateEmployee() {}
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.employeeService.remove(id);
+  }
+
+  @Patch(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.employeeService.restore(id);
+  }
 }

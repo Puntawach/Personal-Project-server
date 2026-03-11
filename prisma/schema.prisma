@@ -24,6 +24,7 @@ enum Role {
 enum Status {
   ACTIVE
   INACTIVE
+  DELETE
 }
 
 enum AttendanceStatus {
@@ -39,13 +40,13 @@ model Employee {
   password         String
   firstName        String   @map("first_name")
   lastName         String   @map("last_name")
-  dailyRate        Decimal  @map("daily_rate") @db.Decimal(10, 2)
-  allowancePerDay  Decimal  @map("allowance_per_day") @db.Decimal(10, 2)
+  dailyRate        Decimal? @map("daily_rate") @db.Decimal(10, 2)
+  allowancePerDay  Decimal? @map("allowance_per_day") @db.Decimal(10, 2)
   phoneNumber      String   @map("phone_number")
   address          String
   identificationId Int      @unique @map("identification_id")
-  role             Role
-  status           Status
+  role             Role     @default(WORKER)
+  status           Status   @default(ACTIVE)
   avatarUrl        String?
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
@@ -54,7 +55,8 @@ model Employee {
   teamId      String?
   team        Team?        @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Restrict)
 
-  teams Team[] @relation("TeamLeaders")
+  teams        Team[]        @relation("TeamLeaders")
+  payrollItems PayrollItem[]
 }
 
 model Team {
@@ -63,15 +65,17 @@ model Team {
 
   employees Employee[] @relation("TeamMembers")
 
-  leaderId String?   @unique
-  leader   Employee? @relation("TeamLeaders", fields: [leaderId], references: [id])
+  leaderId  String?   @unique
+  leader    Employee? @relation("TeamLeaders", fields: [leaderId], references: [id])
+  deletedAt DateTime?
 }
 
 model Site {
-  id          String       @id @default(uuid())
-  name        String
-  lat         Float
-  long        Float
+  id   String @id @default(uuid())
+  name String
+  lat  Float
+  long Float
+
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
   attendances Attendance[]
@@ -122,11 +126,13 @@ model CheckIn {
 }
 
 model PayrollPeriod {
-  id    String @id @default(uuid())
-  month Int
-  year  Int
+  id       String  @id @default(uuid())
+  month    Int
+  year     Int
+  isLocked Boolean @default(false)
 
-  attendances Attendance[]
+  attendances  Attendance[]
+  payrollItems PayrollItem[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
@@ -135,10 +141,33 @@ model PayrollPeriod {
   @@index([month, year])
 }
 
+model PayrollItem {
+  id          String  @id @default(uuid())
+  normalHours Float
+  otHours     Float
+  workDays    Int
+  normalPay   Decimal @db.Decimal(10, 2)
+  otPay       Decimal @db.Decimal(10, 2)
+  allowance   Decimal @db.Decimal(10, 2)
+  totalPay    Decimal @db.Decimal(10, 2)
+
+  employeeId      String
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([employeeId, payrollPeriodId])
+}
+
 model ReportImage {
   id       String @id @default(uuid())
   imageUrl String
+  detail   String
 
+  deletedAt    DateTime?
   attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 

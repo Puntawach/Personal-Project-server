@@ -10,6 +10,10 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { SecurityModule } from './shared/security/security.module';
 import { TeamModule } from './team/team.module';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { SiteService } from './site/site.service';
+import { SiteController } from './site/site.controller';
+import { SiteModule } from './site/site.module';
+import { PayrollModule } from './payroll/payroll.module';
 
 @Module({
   imports: [
@@ -21,10 +25,14 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     AttendanceModule,
     SecurityModule,
     TeamModule,
+    SiteModule,
+    PayrollModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    SiteService,
   ],
+  controllers: [SiteController],
 })
 export class AppModule {}
