@@ -34,6 +34,12 @@ enum AttendanceStatus {
   REJECTED
 }
 
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Employee {
   id               String   @id @default(uuid())
   email            String   @unique
@@ -167,9 +173,10 @@ model ReportImage {
   imageUrl String
   detail   String
 
+  status       ReportStatus @default(PENDING)
   deletedAt    DateTime?
   attendanceId String
-  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  attendance   Attendance   @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()

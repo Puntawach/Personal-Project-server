@@ -6,21 +6,20 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { EmployeeService } from './employee.service';
-import { CreateEmployeeDto } from './dtos/create-employee.dto';
-import { Public } from 'src/auth/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
-import { CreateAdminDto } from './dtos/create-admin.dto';
 import { ResponseMessage } from 'src/common/decorators/message-response.decorator';
+import { CreateAdminDto } from './dtos/create-admin.dto';
+import { CreateEmployeeDto } from './dtos/create-employee.dto';
 import { UpdateEmployeeDto } from './dtos/update-employee.dto';
 import { UpdateMeDto } from './dtos/update-me.dto';
-
+import { EmployeeService } from './employee.service';
 @Controller('employees')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}

@@ -17,6 +17,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       const writableStream = cloudinary.uploader.upload_stream(
         (error, result) => {
+          console.log('Cloudinary error:', error);
           if (error || !result) {
             reject(new Error('Cloudinary uploaded failed'));
             return;
