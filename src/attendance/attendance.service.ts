@@ -181,4 +181,29 @@ export class AttendanceService {
       data: { status: AttendanceStatus.REJECTED },
     });
   }
+
+  async getAllByMonth(month: number, year: number) {
+    return this.prisma.attendance.findMany({
+      where: {
+        workDate: {
+          gte: new Date(year, month - 1, 1),
+          lt: new Date(year, month, 1),
+        },
+      },
+      include: {
+        checkIns: true,
+        site: true,
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            teamId: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: { workDate: 'asc' },
+    });
+  }
 }

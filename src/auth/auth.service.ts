@@ -5,6 +5,7 @@ import { EmployeeService } from 'src/employee/employee.service';
 import { BcryptService } from 'src/shared/security/services/bcrypt.service';
 import { AuthTokenService } from 'src/shared/security/services/auth-token.service';
 import { EmployeeWithoutPassword } from 'src/employee/types/employee.type';
+import { TypedConfigService } from 'src/config/typed-config.service';
 
 @Injectable()
 export class AuthService {
@@ -12,10 +13,13 @@ export class AuthService {
     private readonly employeeService: EmployeeService,
     private readonly bcryptService: BcryptService,
     private readonly authTokenService: AuthTokenService,
+    private readonly typeConfigService: TypedConfigService,
   ) {}
-  async login(
-    loginDto: Login,
-  ): Promise<{ accessToken: string; employee: Omit<Employee, 'password'> }> {
+  async login(loginDto: Login): Promise<{
+    accessToken: string;
+    employee: Omit<Employee, 'password'>;
+    expiredIn: number;
+  }> {
     const employee = await this.employeeService.findByEmail(loginDto.email);
 
     if (!employee)
@@ -42,7 +46,11 @@ export class AuthService {
     });
 
     const { password, ...rest } = employee;
-    return { accessToken, employee: rest };
+    return {
+      accessToken,
+      employee: rest,
+      expiredIn: this.typeConfigService.get('JWT_EXPIRES_IN'),
+    };
   }
 
   async getCurrentUser(id: string): Promise<EmployeeWithoutPassword> {

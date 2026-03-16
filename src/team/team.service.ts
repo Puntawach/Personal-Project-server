@@ -12,11 +12,20 @@ import { UpdateTeam } from './dtos/update-team.dto';
 export class TeamService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllTeam(): Promise<Team[]> {
-    const data = this.prisma.team.findMany();
-    return data;
+  async getAllTeam() {
+    return this.prisma.team.findMany({
+      where: { deletedAt: null },
+      include: {
+        employees: {
+          where: {
+            status: 'ACTIVE',
+            role: { in: ['WORKER', 'LEADER'] },
+          },
+        },
+        leader: true,
+      },
+    });
   }
-
   async createTeam(createTeamDto: CreateTeamDto): Promise<Team> {
     return await this.prisma.team.create({ data: createTeamDto });
   }

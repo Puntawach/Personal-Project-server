@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
 import { CheckInDto } from './dtos/attendance-check-in.dto';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
@@ -50,5 +59,13 @@ export class AttendanceController {
   @Patch(':attendanceId/reject')
   reject(@Param('attendanceId') attendanceId: string) {
     return this.attendanceService.reject(attendanceId);
+  }
+
+  @Get('admin/all')
+  getAllByMonth(
+    @Query('month', ParseIntPipe) month: number,
+    @Query('year', ParseIntPipe) year: number,
+  ) {
+    return this.attendanceService.getAllByMonth(month, year);
   }
 }

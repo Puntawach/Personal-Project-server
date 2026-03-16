@@ -121,6 +121,8 @@ export class PayrollService {
               otPay,
               allowance,
               totalPay,
+              dailyRateSnapshot: employee.dailyRate,
+              allowanceSnapshot: employee.allowancePerDay,
             },
           });
         }
@@ -136,6 +138,8 @@ export class PayrollService {
             otPay,
             allowance,
             totalPay,
+            dailyRateSnapshot: employee.dailyRate,
+            allowanceSnapshot: employee.allowancePerDay,
           },
         });
       }),
@@ -182,6 +186,8 @@ export class PayrollService {
                 lastName: true,
                 dailyRate: true,
                 allowancePerDay: true,
+                teamId: true,
+                updatedAt: true,
               },
             },
           },

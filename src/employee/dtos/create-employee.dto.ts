@@ -35,9 +35,8 @@ export class CreateEmployeeDto {
 
   @IsString()
   phoneNumber: string;
-
-  @IsNumber()
-  identificationId: number;
+  @IsString()
+  identificationId: string;
 
   @IsEnum(Role)
   @IsNotEmpty({ message: 'Role is required' })
