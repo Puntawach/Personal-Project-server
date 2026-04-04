@@ -47,6 +47,7 @@ export class EmployeeController {
   async createAdmin(@Body() createAdminDto: CreateAdminDto): Promise<void> {
     return await this.employeeService.createAdmin(createAdminDto);
   }
+
   @Public()
   @Post()
   createEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {

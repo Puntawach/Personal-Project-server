@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { Trim } from 'src/common/decorators/trim';
@@ -42,18 +43,23 @@ export class CreateEmployeeDto {
   @IsNotEmpty({ message: 'Role is required' })
   role: Role;
 
+  @IsOptional()
   @IsEnum(Status)
   status: Status;
 
+  @IsOptional()
   avatarUrl: string;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   dailyRate: number;
 
+  @IsOptional()
   @IsNumber()
   allowancePerDay: number;
 
+  @IsOptional()
   @IsString()
   teamId: string;
 }

@@ -130,9 +130,8 @@ async function main() {
         role: 'WORKER',
         status: 'ACTIVE',
 
-        dailyRate: new Prisma.Decimal(rand(450, 700)),
-        allowancePerDay: new Prisma.Decimal(rand(40, 120)),
-
+        dailyRate: rand(450, 700),
+        allowancePerDay: rand(40, 120),
         teamId: teams[i % 3].id,
       },
     });
