@@ -10,9 +10,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/role.decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
 import { ResponseMessage } from 'src/common/decorators/message-response.decorator';
 import { CreateAdminDto } from './dtos/create-admin.dto';
@@ -20,35 +19,36 @@ import { CreateEmployeeDto } from './dtos/create-employee.dto';
 import { UpdateEmployeeDto } from './dtos/update-employee.dto';
 import { UpdateMeDto } from './dtos/update-me.dto';
 import { EmployeeService } from './employee.service';
+
 @Controller('employees')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @Get('me')
   getMe(@CurrentEmployee() employee: JwtPayload) {
-    console.log(employee);
     return this.employeeService.findById(employee.sub);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Get(':id')
   getEmployeeById(@Param('id') id: string) {
     return this.employeeService.findById(id);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Get()
   getAllEmployee() {
     return this.employeeService.getAllEmployee();
   }
 
-  @Public()
+  @Roles('SUPER_ADMIN')
   @ResponseMessage('Admin created successfully')
   @Post('admin')
   async createAdmin(@Body() createAdminDto: CreateAdminDto): Promise<void> {
     return await this.employeeService.createAdmin(createAdminDto);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post()
   createEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeeService.create(createEmployeeDto);
@@ -62,6 +62,7 @@ export class EmployeeController {
   ): Promise<string> {
     return this.employeeService.uploadAvatar(file, employee.sub);
   }
+
   @Patch('me')
   updateMe(
     @Body() updateMeDto: UpdateMeDto,
@@ -70,6 +71,7 @@ export class EmployeeController {
     return this.employeeService.updateMe(employee.sub, updateMeDto);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':id')
   updateEmployee(
     @Param('id') id: string,
@@ -78,11 +80,13 @@ export class EmployeeController {
     return this.employeeService.updateEmployee(id, updateEmployeeDto);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.employeeService.remove(id);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':id/restore')
   restore(@Param('id') id: string) {
     return this.employeeService.restore(id);

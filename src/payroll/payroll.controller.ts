@@ -11,23 +11,25 @@ import { PayrollService } from './payroll.service';
 import { LockPayrollDto } from './dtos/lock-payroll.dto';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/role.decorator';
 
 @Controller('payroll')
 export class PayrollController {
   constructor(private readonly payrollService: PayrollService) {}
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post('generate')
   generate(@Body() generatePayrollDto: GeneratePayrollDto) {
     return this.payrollService.generate(generatePayrollDto);
   }
-  @Public()
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post('lock')
   lock(@Body() lockPayrollDto: LockPayrollDto) {
     return this.payrollService.lock(lockPayrollDto);
   }
-  @Public()
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Get('summary')
   getSummary(
     @Query('month', ParseIntPipe) month: number,

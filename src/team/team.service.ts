@@ -31,7 +31,6 @@ export class TeamService {
   }
 
   async updateTeam(id: string, updateTeam: UpdateTeam): Promise<Team> {
-    console.log('update', updateTeam);
     return await this.prisma.team.update({
       where: { id },
       data: updateTeam,

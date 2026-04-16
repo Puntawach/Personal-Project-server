@@ -128,14 +128,10 @@ export class EmployeeService {
     file: Express.Multer.File,
     employeeId: string,
   ): Promise<string> {
-    // 1. upload to cloud
-    console.log('file received in service:', file);
     const result = await this.cloudinaryService.upload(file);
     const employee = await this.update(employeeId, {
       avatarUrl: result.secure_url,
     });
-    console.log(employee);
-    // 2. update avatarUrl into the dat abase
     return result.secure_url;
   }
 

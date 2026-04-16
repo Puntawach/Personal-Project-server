@@ -9,8 +9,9 @@ import {
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dtos/create-team.dto';
-import { Public } from 'src/auth/decorators/public.decorator';
 import { UpdateTeam } from './dtos/update-team.dto';
+import { Roles } from 'src/auth/decorators/role.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('teams')
 export class TeamController {
@@ -22,24 +23,25 @@ export class TeamController {
     return this.teamService.getAllTeam();
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Post()
   createTeam(@Body() createTeamDto: CreateTeamDto) {
     return this.teamService.createTeam(createTeamDto);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':id')
   updateTeam(@Param('id') id: string, @Body() updateTeam: UpdateTeam) {
     return this.teamService.updateTeam(id, updateTeam);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.teamService.deleteTeam(id);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':teamId/members/:employeeId')
   addMember(
     @Param('teamId') teamId: string,
@@ -48,7 +50,7 @@ export class TeamController {
     return this.teamService.addMember(teamId, employeeId);
   }
 
-  @Public()
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Delete(':teamId/members/:employeeId')
   removeMember(@Param('employeeId') employeeId: string) {
     return this.teamService.removeMember(employeeId);
