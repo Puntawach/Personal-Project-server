@@ -11,10 +11,14 @@ import {
 } from 'src/database/generated/prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { CheckOutDto } from './dtos/attendance-check-out.dto';
+import { PayrollService } from 'src/payroll/payroll.service';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly payrollService: PayrollService,
+  ) {}
 
   async checkIn(employeeId: string, checkInDto: CheckInDto) {
     const today = new Date(checkInDto.workDate);
@@ -157,12 +161,24 @@ export class AttendanceService {
       throw new BadRequestException('Attendance is not in SUBMITTED status');
     }
 
-    return this.prisma.attendance.update({
+    const approved = await this.prisma.attendance.update({
       where: { id: attendanceId },
       data: { status: AttendanceStatus.APPROVED },
     });
-  }
 
+    // Auto-calculate payroll หลัง approve
+    const workDate = new Date(approved.workDate);
+    const month = workDate.getMonth() + 1;
+    const year = workDate.getFullYear();
+
+    await this.payrollService.calculateForEmployee(
+      approved.employeeId,
+      month,
+      year,
+    );
+
+    return approved;
+  }
   async reject(attendanceId: string) {
     const attendance = await this.prisma.attendance.findUnique({
       where: { id: attendanceId },

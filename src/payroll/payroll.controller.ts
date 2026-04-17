@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { GeneratePayrollDto } from './dtos/generate-payroll.dto';
 import { PayrollService } from './payroll.service';
-import { LockPayrollDto } from './dtos/lock-payroll.dto';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
 import { Roles } from 'src/auth/decorators/role.decorator';
@@ -21,12 +20,6 @@ export class PayrollController {
   @Post('generate')
   generate(@Body() generatePayrollDto: GeneratePayrollDto) {
     return this.payrollService.generate(generatePayrollDto);
-  }
-
-  @Roles('ADMIN', 'SUPER_ADMIN')
-  @Post('lock')
-  lock(@Body() lockPayrollDto: LockPayrollDto) {
-    return this.payrollService.lock(lockPayrollDto);
   }
 
   @Roles('ADMIN', 'SUPER_ADMIN')
